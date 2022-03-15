@@ -44,6 +44,7 @@ Required arguments are:
   -f,--fraction             mask clonal CNVs that occur in greater than this fraction of control cells,
   -o,--output               output prefix for bed and plot files.
 Optional arguments are:
+     --celllPloidy          set the ploidy of your cells
      --minOverlap           minimum fraction of overlap between two CNAs above which they are considered the same (default: 0.5),
      --largeGenes           bed file of large genes,
      --geneExpression       bed file of genes with expression,
@@ -65,6 +66,7 @@ class arguments:
 def parseArguments(args):
 
 	a = arguments()
+	a.cellPloidy = 2
 	a.minOverlap = 0.5
 	a.useLargeGenes = False
 	a.computeGeneExpression = False
@@ -83,6 +85,9 @@ def parseArguments(args):
 
 		elif argument == '-o' or argument == '--output':
 			a.outPrefix = str(args[i+1])
+
+		elif argument == '--cellPloidy':
+			a.cellPloidy = float(args[i+1])
 
 		elif argument == '--minOverlap':
 			a.minOverlap = float(args[i+1])
@@ -497,7 +502,7 @@ def parseBed(filename,clonalSCNAs,minOverlap):
 			call = somy2var(splitLine[3])
 
 			#print chromosome, start, end, call
-			if call != 2:
+			if call != cellPloidy:
 				if (chromosome,call) not in clonalSCNAs:
 					cell.SCNAs.append(SCNA(chromosome,start,end,call))
 				else:
@@ -587,6 +592,7 @@ def cellToRow(cell, resolution):
 #MAIN---------------------------------------------
 args = parseArguments(sys.argv[1:])
 clonalThreshold = args.fraction
+cellPloidy = args.cellPloidy
 
 #make the data
 cells_control = parseBed(args.controlPath, [], args.minOverlap)
@@ -676,7 +682,7 @@ for cell in cells_test:
 
 		fh_nonClonalBed.write(s.chromosome + ' ' + str(s.start) + ' ' + str(s.end) + ' ' + str(s.var) + ' ' + str(cell.name) + '\n')
 
-		if s.var > 2:
+		if s.var > cellPloidy:
 			yOffset = 1000000
 			rect = [offset + s.start, yOffset, s.end-s.start, 200000]
 			search = rectanglesOverlapSearch(rect,chr2rectangles[s.chromosome])
