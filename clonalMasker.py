@@ -488,8 +488,10 @@ def parseBed(filename,clonalSCNAs,minOverlap):
 
             if not first:
                 allCells.append(cell)
+                print(cell)
             first = False
             cell = SingleCellSeq()
+            print(cell)
             splitLine = line.rstrip().split('"')
             splitLine2 = splitLine[1].split(' ')
             cell.name = splitLine2[-1:][0][0:splitLine2[-1:][0].index('.')]
@@ -509,7 +511,7 @@ def parseBed(filename,clonalSCNAs,minOverlap):
                     isClonal = False
                     for clonalPair in clonalSCNAs[(chromosome,call)]:
                         overlap = max(0, min(clonalPair[1],end) - max(clonalPair[0],start))
-                        if float(overlap) / (end - start) > minOverlap:
+                        if float(overlap) / abs(end - start) > minOverlap and float(overlap) / abs(clonalPair[1] - clonalPair[0]) > minOverlap:
                             isClonal = True
                             break
                     if not isClonal:
@@ -672,15 +674,29 @@ for c in chromosomeNames:
 matrix = []
 resolution = 2000000 #2 Mb
 for cell in cells_test:
-
     row = np.array(cellToRow(cell, resolution))
     matrix.append(row)
-
     for s in cell.SCNAs:
 
         offset = chr2offsetStart[s.chromosome]
 
         fh_nonClonalBed.write(s.chromosome + ' ' + str(s.start) + ' ' + str(s.end) + ' ' + str(s.var) + ' ' + str(cell.name) + '\n')
+        cna_colour = ""
+
+        if s.var > cellPloidy+2:
+            cna_colour = "darkred"
+        elif s.var == cellPloidy+2:
+            cna_colour = "red"
+        elif s.var == cellPloidy+1:
+            cna_colour = "lightcoral"
+        elif s.var == cellPloidy-1:
+            cna_colour = "lightsteelblue"
+        elif s.var == cellPloidy-2:
+            cna_colour = "blue"
+        elif s.var < cellPloidy-2:
+            cna_colour = "darkblue"
+        else:
+            continue
 
         if s.var > cellPloidy:
             yOffset = 1000000
@@ -691,7 +707,7 @@ for cell in cells_test:
                 rect = [offset + s.start, yOffset, s.end-s.start, 200000]
                 search = rectanglesOverlapSearch(rect,chr2rectangles[s.chromosome])
             chr2rectangles[s.chromosome].append(rect)
-            currentAxis.add_patch(Rectangle((rect[0],rect[1]), rect[2], rect[3], alpha=0.5,facecolor='red',edgecolor=None))
+            currentAxis.add_patch(Rectangle((rect[0],rect[1]), rect[2], rect[3], alpha=0.5,facecolor=cna_colour,edgecolor=None))
         else:
             yOffset = -1000000
             rect = [offset + s.start, yOffset, s.end-s.start, 200000]
@@ -701,7 +717,7 @@ for cell in cells_test:
                 rect = [offset + s.start, yOffset, s.end-s.start, 200000]
                 search = rectanglesOverlapSearch(rect,chr2rectangles[s.chromosome])
             chr2rectangles[s.chromosome].append(rect)
-            currentAxis.add_patch(Rectangle((rect[0],rect[1]), rect[2], rect[3], alpha=0.5, facecolor='blue',edgecolor=None))
+            currentAxis.add_patch(Rectangle((rect[0],rect[1]), rect[2], rect[3], alpha=0.5, facecolor=cna_colour,edgecolor=None))
 
 fh_clonalBed.close()
 fh_nonClonalBed.close()
