@@ -11,8 +11,8 @@ Breakpointfinder.py can by run by the following input the in terminal:
   python CNA_breakpointfinder.py -b /path/to/bedfile.bed --lb 1.0 --ub 1.0 -o /path/to/outputPrefix
 Required arguments are:
   -b,--bedfile              input bedfile,
-  -li,--lowerInterval          sets the lower interval for CNA comparison (this will be multiplied by 10^6),
-  -ui,--upperInterval          sets the upper interval for CNA comparison (this will be multiplied by 10^6),
+  -li,--lowerInterval       sets the lower interval for CNA comparison (this will be multiplied by 10^6),
+  -ui,--upperInterval       sets the upper interval for CNA comparison (this will be multiplied by 10^6),
   -o,--output               output prefix for bed file.
 
 Author:
