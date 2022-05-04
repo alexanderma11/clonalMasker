@@ -122,14 +122,19 @@ for cell in allCells:
         if (s.start) != 0:
             filtered_SCNAs[(s.chromosome)].append((s.start,s.end, s.var, cell.name))
 
-#Find unique CNAs
-print("There is a total of ", len(allCells)," cells in this bedfile. How many cells can a breakpoint be present in?")
-number_cells = float(input())
-fraction = number_cells/len(allCells)
+#Set the parameters for breakpoints
+print("There is a total of ", len(allCells)," cells in this bedfile.")
+print("Please input the minimum number of cells a breakpoint can be present in: ")
+min_num_cells = float(input())
+print("Please input the maximum number of cells a breakpoint can be present in: ")
+max_num_cells = float(input())
+min_fraction = min_num_cells/len(allCells)
+max_fraction = max_num_cells/len(allCells)
 
-a_uniqueCNAsBed = args.outPrefix + '_CellThreshold='+str(number_cells)+'_lowerInterval='+str(args.lowerInterval)+'mb'+'_upperInterval='+str(args.upperInterval)+'mb'+'.bed'
+a_uniqueCNAsBed = args.outPrefix + '_CellThreshold='+'['+str(min_num_cells)+'-'+str(max_num_cells)+']'+'_lowerInterval='+str(args.lowerInterval)+'mb'+'_upperInterval='+str(args.upperInterval)+'mb'+'.bed'
 b_uniqueCNAsBed = open(a_uniqueCNAsBed,'w')
 
+#Call breakpoints
 for chromosome in filtered_SCNAs:
     for i in filtered_SCNAs[chromosome]:
         overlaps = 0
@@ -141,7 +146,7 @@ for chromosome in filtered_SCNAs:
             else:
                 continue
 
-        if float(overlaps)/len(allCells) <= fraction:
+        if float(overlaps)/len(allCells) >= min_fraction and float(overlaps)/len(allCells) <= max_fraction:
             b_uniqueCNAsBed.write(chromosome + ' ' + str(i[0]) + ' ' + str(i[1]) + ' ' + str(i[2]) + ' ' + str(i[3]) + '\n')
 
 b_uniqueCNAsBed.close()
